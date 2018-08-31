@@ -19,27 +19,11 @@ io.on('connection',(socket) => {
 
     socket.on('disconnect' , () => {
         console.log('New client disconnected');
-    }); 
-    
-    socket.emit('newEmail',{
-        from: 'abc@org.com',
-        text: 'Hello ....',
-        receivedAt: 123
-    });
-
-    socket.on('createEmail',(email) => {
-        console.log('Create email',email);
-    });
-
-    socket.emit('newMessage',{
-        from: 'abc@org.com',
-        text: 'Hello ....',
-        createdAt: 123
-    });
+    });      
 
     socket.on('createMessage',(message) => {
         message['createdAt'] = new Date();
-        console.log('Create message',message);
+        io.emit('newMessage',message);
     });
 });
 
