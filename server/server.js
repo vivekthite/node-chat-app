@@ -19,11 +19,26 @@ io.on('connection',(socket) => {
 
     socket.on('disconnect' , () => {
         console.log('New client disconnected');
-    });      
+    });
+    
+    //message from Admin .. saying welcome to chat
+    socket.emit('newMessage',{
+        from: 'Admin',
+        text: 'Welcome to chat',
+        createdAt: new Date().getTime()
+    });
+
+    //message from admin ... if new user joins 
+    socket.broadcast.emit('newMessage',{
+        from: 'Admin',
+        text: 'New user joined',
+        createdAt: new Date().getTime()
+    });
 
     socket.on('createMessage',(message) => {
         message['createdAt'] = new Date();
-        io.emit('newMessage',message);
+        //io.emit('newMessage',message);
+        socket.broadcast.emit('newMessage',message);
     });
 });
 
