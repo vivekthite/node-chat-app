@@ -3,6 +3,8 @@ const express = require('express')
 const http = require('http');
 const socketIo = require('socket.io');
 
+const {generateMessage} = require('./utils/message');
+
 const publicPath = path.join(__dirname,'../public');
 const PORT = process.env.PORT || 3000;
 
@@ -22,23 +24,16 @@ io.on('connection',(socket) => {
     });
     
     //message from Admin .. saying welcome to chat
-    socket.emit('newMessage',{
-        from: 'Admin',
-        text: 'Welcome to chat',
-        createdAt: new Date().getTime()
-    });
+    socket.emit('newMessage',generateMessage('Admin','Welcome to Chat'));
 
     //message from admin ... if new user joins 
-    socket.broadcast.emit('newMessage',{
-        from: 'Admin',
-        text: 'New user joined',
-        createdAt: new Date().getTime()
-    });
+    socket.broadcast.emit('newMessage',generateMessage('Admin','New user joined'));
 
+    //invoked when new message is created by user
     socket.on('createMessage',(message) => {
         message['createdAt'] = new Date();
         //io.emit('newMessage',message);
-        socket.broadcast.emit('newMessage',message);
+        socket.broadcast.emit('newMessage',generateMessage(message.from,message.text));
     });
 });
 
