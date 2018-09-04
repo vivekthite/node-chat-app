@@ -1,5 +1,5 @@
 const path = require('path');
-const express = require('express')
+const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 
@@ -30,10 +30,12 @@ io.on('connection',(socket) => {
     socket.broadcast.emit('newMessage',generateMessage('Admin','New user joined'));
 
     //invoked when new message is created by user
-    socket.on('createMessage',(message) => {
-        message['createdAt'] = new Date();
+    socket.on('createMessage',(message,callback) => {
+        //message['createdAt'] = new Date();
         //io.emit('newMessage',message);
+        console.log(message);
         socket.broadcast.emit('newMessage',generateMessage(message.from,message.text));
+        callback('This is from server');
     });
 });
 
