@@ -26,5 +26,5 @@ describe('generateLocationMessage' , () => {
         expect(message.url).toBe(url);
         expect(message.createdAt).toBeDefined();        
         done();
-    })
+    });
 });
