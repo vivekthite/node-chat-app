@@ -4,6 +4,8 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 const {generateMessage,generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 
 const publicPath = path.join(__dirname,'../public');
 const PORT = process.env.PORT || 3000;
@@ -13,6 +15,7 @@ const app = express();
 app.use(express.static(publicPath));
 const server = http.createServer(app);
 const io = socketIo(server);
+const users = new Users();
 
 io.on('connection',(socket) => {
     //console.log('socket',socket);
@@ -21,13 +24,38 @@ io.on('connection',(socket) => {
 
     socket.on('disconnect' , () => {
         console.log('New client disconnected');
+        var user = users.removeUser(socket.id);
+        if(user){
+            io.to(user.room).emit('updateUserList',users.getUserNames(user.room));
+            io.to(user.room).emit('newMessage',generateMessage('Admin',user.name+' has left'));
+            //socket.broadcast.to(params.room).emit('newMessage',generateMessage('Admin',params.name+' has joined'));
+        }
+        
+    });
+
+    socket.on('join',(params,callback) => {
+        if(!isRealString(params.name) || !isRealString(params.room)){
+            return callback('Provide the values for user name and room to join');
+        }
+
+        socket.join(params.room);
+        users.removeUser(socket.id);
+        users.addUser(socket.id,params.name,params.room);
+        io.to(params.room).emit('updateUserList',users.getUserNames(params.room));
+        //socket.leave('roomName');
+        //io.to('roomName').emit
+        //socket.broadcast.to('roomName').emit
+
+         //message from Admin .. saying welcome to chat
+        socket.emit('newMessage',generateMessage('Admin','Welcome to Chat'));
+
+        //message from admin ... if new user joins 
+        socket.broadcast.to(params.room).emit('newMessage',generateMessage('Admin',params.name+' has joined'));
+
+        callback();
     });
     
-    //message from Admin .. saying welcome to chat
-    socket.emit('newMessage',generateMessage('Admin','Welcome to Chat'));
-
-    //message from admin ... if new user joins 
-    socket.broadcast.emit('newMessage',generateMessage('Admin','New user joined'));
+   
 
     //invoked when new message is created by user
     socket.on('createMessage',(message,callback) => {
